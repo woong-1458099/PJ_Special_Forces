@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import place_list
+from .views import PlaceSearchAPIView
+
 
 urlpatterns = [
-    path('', place_list),
+    path('search/', PlaceSearchAPIView.as_view()),
 ]

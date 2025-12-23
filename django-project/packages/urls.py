@@ -1,9 +1,7 @@
 from django.urls import path
-from .views import generate, save, mine, remove
+from .views import PackageGenerateAPIView, PackageDetailAPIView
 
 urlpatterns = [
-    path('generate/', generate),        # POST
-    path('mine/', mine),                # GET
-    path('', save),                     # POST 저장
-    path('<int:package_id>/', remove),  # DELETE
+    path('generate/', PackageGenerateAPIView.as_view()),
+    path('<int:package_id>/', PackageDetailAPIView.as_view()),
 ]
