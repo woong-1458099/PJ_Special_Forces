@@ -5,69 +5,61 @@
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <h1 class="hero-title">Snow Travel</h1>
-        <p class="hero-subtitle">당신의 여행을 특별하게 만들어 드립니다</p>
 
         <!-- 검색 영역 -->
-        <div class="hero-search">
+        <div class="search-container">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="어디로 떠나고 싶으세요?"
-            class="hero-search-input"
+            placeholder="어디로 여행을 떠나고 싶으세요?"
+            class="search-input"
             @keyup.enter="handleSearch"
           />
-          <button @click="handleSearch" class="hero-search-btn">검색</button>
+          <button @click="handleSearch" class="search-btn">검색</button>
         </div>
 
-        <!-- 빠른 필터 -->
-        <div class="quick-filters">
-          <button @click="quickSearch('제주도')" class="quick-filter-btn">
-            🏝️ 제주도
+        <!-- 탭 메뉴 -->
+        <div class="tabs">
+          <button :class="['tab-btn', { active: activeTab === 'recent' }]" @click="activeTab = 'recent'">
+            📝 최근 검색
           </button>
-          <button @click="quickSearch('부산')" class="quick-filter-btn">
-            🏖️ 부산
+          <button :class="['tab-btn', { active: activeTab === 'realtime' }]" @click="activeTab = 'realtime'">
+            🔥 실시간 검색어
           </button>
-          <button @click="quickSearch('서울')" class="quick-filter-btn">
-            🏙️ 서울
+          <button :class="['tab-btn', { active: activeTab === 'popular' }]" @click="activeTab = 'popular'">
+            ⭐ 인기 여행지
           </button>
         </div>
       </div>
     </section>
 
-    <!-- 메인 컨텐츠 -->
-    <section class="container">
-      <!-- 예산 필터 -->
-      <div class="budget-filter">
-        <label>예산 범위:</label>
-        <select v-model="selectedBudget" @change="applyBudgetFilter">
-          <option value="">전체</option>
-          <option value="30000">3만원 이하</option>
-          <option value="50000">5만원 이하</option>
-          <option value="100000">10만원 이하</option>
-          <option value="200000">20만원 이하</option>
-        </select>
-      </div>
-
-      <!-- 컨셉 카테고리 -->
-      <h3 class="section-title">컨셉 선택</h3>
-      <div class="grid-categories">
-        <div
-          v-for="c in concepts"
-          :key="c.name"
-          class="category-card"
-          @click="goConcept(c)"
-        >
-          <span class="category-icon">{{ c.icon }}</span>
-          <span class="category-name">{{ c.name }}</span>
+    <!-- 카테고리 섹션 -->
+    <section class="categories-section">
+      <h3 class="section-title">여행 카테고리</h3>
+      <div class="categories-grid">
+        <div class="category-card" @click="goCategory('discount')">
+          <div class="category-icon">🎁</div>
+          <div class="category-name">무료 할인</div>
+          <p class="category-desc">할인 혜택 가득한 여행 상품</p>
+        </div>
+        <div class="category-card" @click="goCategory('latest')">
+          <div class="category-icon">✨</div>
+          <div class="category-name">최신 여행</div>
+          <p class="category-desc">새로 나온 여행 상품 모음</p>
+        </div>
+        <div class="category-card" @click="goCategory('honeymoon')">
+          <div class="category-icon">💑</div>
+          <div class="category-name">신혼 여행</div>
+          <p class="category-desc">로맨틱한 신혼여행 패키지</p>
         </div>
       </div>
+    </section>
 
-      <!-- AI 추천 버튼 -->
-      <div class="ai-recommend-section">
-        <button @click="goAIRecommend" class="ai-btn">
-          🤖 AI 맞춤 추천 받기
-        </button>
-      </div>
+    <!-- AI 추천 섹션 -->
+    <section class="ai-section">
+      <button @click="goAIRecommend" class="ai-recommend-btn">
+        🤖 AI 맞춤 여행 추천 받기
+      </button>
     </section>
   </div>
 </template>
@@ -75,28 +67,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePlacesStore } from '@/stores/places'
 
 const router = useRouter()
-const placesStore = usePlacesStore()
-
 const searchQuery = ref('')
-const selectedBudget = ref('')
-
-const concepts = [
-  { name: '액티비티', icon: '🏃', category: 'activity' },
-  { name: '힐링', icon: '🧘', category: 'tourist' },
-  { name: '카페', icon: '☕', category: 'restaurant' },
-  { name: '쇼핑', icon: '🛍️', category: 'shopping' }
-]
-
-const goConcept = (concept) => {
-  placesStore.setConcept(concept.name)
-  router.push({
-    path: '/places',
-    query: { category: concept.category }
-  })
-}
+const activeTab = ref('recent')
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
@@ -107,39 +81,35 @@ const handleSearch = () => {
   }
 }
 
-const applyBudgetFilter = () => {
+const goCategory = (category) => {
   router.push({
     path: '/places',
-    query: { budget: selectedBudget.value }
+    query: { category }
   })
 }
 
 const goAIRecommend = () => {
   router.push('/concept')
 }
-
-const quickSearch = (location) => {
-  searchQuery.value = location
-  handleSearch()
-}
 </script>
 
 <style scoped>
 .home-wrapper {
   width: 100%;
+  min-height: 100vh;
+  background: #f5f5f5;
 }
 
 /* 히어로 섹션 */
 .hero-section {
   position: relative;
-  height: 500px;
-  background-image: url('https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=1920');
+  height: 450px;
+  background-image: url('https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=1920');
   background-size: cover;
   background-position: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 .hero-overlay {
@@ -148,199 +118,170 @@ const quickSearch = (location) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(139, 123, 209, 0.75);
+  background: rgba(120, 100, 180, 0.7);
 }
 
 .hero-content {
   position: relative;
   z-index: 1;
   text-align: center;
-  color: white;
+  width: 100%;
   max-width: 700px;
   padding: 20px;
 }
 
 .hero-title {
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
-  margin-bottom: 12px;
+  color: white;
+  margin-bottom: 32px;
   text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.hero-subtitle {
-  font-size: 20px;
-  margin-bottom: 36px;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
-  font-weight: 400;
-}
-
-.hero-search {
+/* 검색 영역 */
+.search-container {
   display: flex;
-  gap: 0;
   max-width: 600px;
-  margin: 0 auto 20px;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.hero-search-input {
+.search-input {
   flex: 1;
-  padding: 16px 24px;
-  font-size: 16px;
+  padding: 16px 20px;
+  font-size: 15px;
   border: none;
-  border-radius: 8px 0 0 8px;
   outline: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.hero-search-input::placeholder {
+.search-input::placeholder {
   color: #999;
 }
 
-.hero-search-btn {
+.search-btn {
   padding: 16px 32px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: white;
   background: #5cb85c;
   border: none;
-  border-radius: 0 8px 8px 0;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.3s;
 }
 
-.hero-search-btn:hover {
+.search-btn:hover {
   background: #4cae4c;
 }
 
-.quick-filters {
+/* 탭 메뉴 */
+.tabs {
   display: flex;
   gap: 12px;
   justify-content: center;
-  flex-wrap: wrap;
 }
 
-.quick-filter-btn {
+.tab-btn {
   padding: 10px 20px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: white;
-  background: rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
   cursor: pointer;
+  transition: all 0.3s;
   backdrop-filter: blur(4px);
-  transition: all 0.2s ease;
 }
 
-.quick-filter-btn:hover {
+.tab-btn:hover,
+.tab-btn.active {
   background: rgba(255, 255, 255, 0.35);
   border-color: white;
 }
 
-.container {
+/* 카테고리 섹션 */
+.categories-section {
   max-width: 1000px;
-  margin: 0 auto;
-  padding: 50px 20px;
-}
-
-.budget-filter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 36px;
-}
-
-.budget-filter label {
-  font-weight: 600;
-  color: #333;
-  font-size: 15px;
-}
-
-.budget-filter select {
-  padding: 8px 16px;
-  font-size: 14px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  cursor: pointer;
-  background: white;
-}
-
-.budget-filter select:focus {
-  outline: none;
-  border-color: #5cb85c;
+  margin: 60px auto;
+  padding: 0 20px;
 }
 
 .section-title {
-  text-align: center;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  margin-bottom: 28px;
   color: #333;
+  margin-bottom: 32px;
+  text-align: center;
 }
 
-.grid-categories {
+.categories-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 40px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
 }
 
 @media (max-width: 768px) {
-  .grid-categories {
-    grid-template-columns: repeat(2, 1fr);
+  .categories-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 .category-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 36px 20px;
   background: white;
-  border: 2px solid #e8e8e8;
+  padding: 32px 24px;
   border-radius: 12px;
+  text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .category-card:hover {
-  border-color: #5cb85c;
   transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(92, 184, 92, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .category-icon {
-  font-size: 52px;
+  font-size: 48px;
+  margin-bottom: 16px;
 }
 
 .category-name {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
   color: #333;
+  margin-bottom: 8px;
 }
 
-.ai-recommend-section {
+.category-desc {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* AI 추천 섹션 */
+.ai-section {
   text-align: center;
-  margin-top: 48px;
+  padding: 40px 20px 80px;
 }
 
-.ai-btn {
-  padding: 16px 40px;
+.ai-recommend-btn {
+  padding: 18px 48px;
   font-size: 18px;
   font-weight: 600;
   color: white;
-  background: linear-gradient(135deg, #8b7bd1 0%, #a694d4 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(139, 123, 209, 0.4);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s;
 }
 
-.ai-btn:hover {
+.ai-recommend-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(139, 123, 209, 0.5);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 </style>
