@@ -48,7 +48,7 @@
 ### 1. 환경 변수 설정
 
 ```bash
-cd django-project
+cd back
 cp .env.example .env
 ```
 
@@ -103,7 +103,7 @@ python manage.py createsuperuser
 ### 1. 환경 변수 설정
 
 ```bash
-cd ../vue-project
+cd ../front
 cp .env.example .env
 ```
 
@@ -130,7 +130,7 @@ npm install
 ### 1. 백엔드 서버 실행 (첫 번째 터미널)
 
 ```bash
-cd django-project
+cd back
 python manage.py runserver
 ```
 
@@ -139,7 +139,7 @@ python manage.py runserver
 ### 2. 프론트엔드 서버 실행 (두 번째 터미널)
 
 ```bash
-cd vue-project
+cd front
 npm run dev
 ```
 
@@ -174,7 +174,7 @@ python manage.py migrate --run-syncdb
 
 ### 2. CORS 오류
 
-`django-project/tc_system/settings.py`에서 CORS 설정 확인:
+`back/tc_system/settings.py`에서 CORS 설정 확인:
 
 ```python
 CORS_ALLOWED_ORIGINS = [
