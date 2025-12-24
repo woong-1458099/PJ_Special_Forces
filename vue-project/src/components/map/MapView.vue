@@ -22,6 +22,7 @@
 <script>
 export default {
   name: 'MapView',
+  emits: ['place-selected'],
   props: {
     places: {
       type: Array,
@@ -160,6 +161,7 @@ export default {
       marker.addListener('click', () => {
         this.selectedPlace = place
         this.map.panTo(position)
+        this.$emit('place-selected', place)
       })
 
       this.markers.push(marker)

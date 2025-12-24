@@ -1,19 +1,35 @@
 <template>
-  <section class="container">
-    <h1 class="title-center">Trip Connection</h1>
-    <p class="subtitle-center">당신만의 완벽한 여행을 계획하세요</p>
+  <div class="home-wrapper">
+    <!-- 히어로 섹션 -->
+    <section class="hero-section">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1 class="hero-title">Snow Travel</h1>
+        <p class="hero-subtitle">당신의 여행을 특별하게 만들어 드립니다</p>
 
-    <!-- 검색 영역 -->
-    <div class="search-section">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="여행지 검색..."
-        class="search-input"
-        @keyup.enter="handleSearch"
-      />
-      <button @click="handleSearch" class="search-btn">검색</button>
-    </div>
+        <!-- 검색 영역 -->
+        <div class="hero-search">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="어디로 떠나고 싶으세요?"
+            class="hero-search-input"
+            @keyup.enter="handleSearch"
+          />
+          <button @click="handleSearch" class="hero-search-btn">검색</button>
+        </div>
+
+        <!-- 빠른 필터 -->
+        <div class="quick-filters">
+          <button @click="quickSearch('제주도')" class="quick-filter-btn">🏝️ 제주도</button>
+          <button @click="quickSearch('부산')" class="quick-filter-btn">🏖️ 부산</button>
+          <button @click="quickSearch('서울')" class="quick-filter-btn">🏙️ 서울</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 메인 컨텐츠 -->
+    <section class="container">
 
     <!-- 예산 필터 -->
     <div class="budget-filter">
@@ -48,6 +64,7 @@
       </button>
     </div>
   </section>
+  </div>
 </template>
 
 <script setup>
@@ -97,63 +114,130 @@ const applyBudgetFilter = () => {
 const goAIRecommend = () => {
   router.push('/concept')
 }
+
+const quickSearch = (location) => {
+  searchQuery.value = location
+  handleSearch()
+}
 </script>
 
 <style scoped>
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 20px;
+.home-wrapper {
+  width: 100%;
 }
 
-.title-center {
+/* 히어로 섹션 */
+.hero-section {
+  position: relative;
+  height: 600px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-image: url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1920');
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.7), rgba(118, 75, 162, 0.7));
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
   text-align: center;
-  font-size: 48px;
-  font-weight: bold;
+  color: white;
+  max-width: 800px;
+  padding: 20px;
+}
+
+.hero-title {
+  font-size: 64px;
+  font-weight: 900;
   margin-bottom: 16px;
-  color: #2c3e50;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  letter-spacing: -1px;
 }
 
-.subtitle-center {
-  text-align: center;
-  font-size: 18px;
-  color: #7f8c8d;
+.hero-subtitle {
+  font-size: 24px;
   margin-bottom: 40px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  font-weight: 300;
 }
 
-.search-section {
+.hero-search {
   display: flex;
   gap: 12px;
   max-width: 600px;
-  margin: 0 auto 30px;
+  margin: 0 auto 24px;
 }
 
-.search-input {
+.hero-search-input {
   flex: 1;
-  padding: 16px 20px;
-  font-size: 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  padding: 20px 24px;
+  font-size: 18px;
+  border: none;
+  border-radius: 50px;
   outline: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.search-input:focus {
-  border-color: #4CAF50;
-}
-
-.search-btn {
-  padding: 16px 32px;
-  font-size: 16px;
-  font-weight: bold;
+.hero-search-btn {
+  padding: 20px 40px;
+  font-size: 18px;
+  font-weight: 600;
   color: white;
   background: #4CAF50;
   border: none;
-  border-radius: 12px;
+  border-radius: 50px;
   cursor: pointer;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+  transition: all 0.3s ease;
 }
 
-.search-btn:hover {
+.hero-search-btn:hover {
   background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+}
+
+.quick-filters {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.quick-filter-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.quick-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+  transform: translateY(-2px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px;
 }
 
 .budget-filter {
