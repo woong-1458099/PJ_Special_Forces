@@ -5,7 +5,6 @@ import os
 import json
 from typing import List, Dict
 
-# OpenAI GPT를 사용하는 경우 (선택사항)
 def get_gpt_recommendation(user_preferences: Dict) -> List[str]:
     """
     GPT를 활용한 여행지 추천
@@ -19,30 +18,75 @@ def get_gpt_recommendation(user_preferences: Dict) -> List[str]:
         'preferences': '자연, 휴식'
     }
     """
-    # TODO: OpenAI API 연동 시 아래 코드 활성화
-    # import openai
-    # openai.api_key = os.getenv('OPENAI_API_KEY')
+    # OpenAI API 키 확인
+    api_key = os.getenv('OPENAI_API_KEY')
 
-    # prompt = f"""
-    # 다음 조건에 맞는 한국 여행지를 추천해주세요:
-    # - 컨셉: {user_preferences.get('concept', '관광')}
-    # - 예산: {user_preferences.get('budget', 0)}원
-    # - 기간: {user_preferences.get('duration', 1)}일
-    # - 동행인: {user_preferences.get('companions', '혼자')}
-    # - 선호: {user_preferences.get('preferences', '')}
+    if not api_key:
+        print("⚠️  OpenAI API 키가 없습니다. 룰 기반 추천을 사용합니다.")
+        return generate_rule_based_recommendation(user_preferences)
 
-    # 추천 장소 이름만 JSON 배열로 반환해주세요.
-    # """
+    try:
+        from openai import OpenAI
 
-    # response = openai.ChatCompletion.create(
-    #     model="gpt-3.5-turbo",
-    #     messages=[{"role": "user", "content": prompt}]
-    # )
+        client = OpenAI(api_key=api_key)
 
-    # return json.loads(response.choices[0].message.content)
+        # 프롬프트 구성
+        concept = user_preferences.get('concept', '관광')
+        budget = user_preferences.get('budget', 0)
+        duration = user_preferences.get('duration', 1)
+        companions = user_preferences.get('companions', '혼자')
+        preferences = user_preferences.get('preferences', '')
 
-    # 현재는 더미 추천 반환
-    return generate_rule_based_recommendation(user_preferences)
+        budget_str = f"{budget:,}원" if budget > 0 else "제한 없음"
+
+        prompt = f"""당신은 한국 여행 전문가입니다. 다음 조건에 맞는 한국 여행지를 추천해주세요:
+
+조건:
+- 여행 컨셉: {concept}
+- 예산: {budget_str}
+- 여행 기간: {duration}일
+- 동행인: {companions}
+- 선호 사항: {preferences if preferences else '없음'}
+
+요청사항:
+1. 위 조건에 가장 적합한 한국 여행지 5개를 추천해주세요
+2. 응답은 반드시 JSON 배열 형식으로만 작성해주세요
+3. 각 장소명은 간단명료하게 (예: "제주도", "경복궁", "부산 해운대")
+
+응답 형식 예시:
+["제주도", "경복궁", "부산 해운대", "전주 한옥마을", "강릉 경포대"]"""
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "당신은 한국 여행 전문가입니다. 사용자의 조건에 맞는 여행지를 추천하며, 응답은 항상 JSON 배열 형식입니다."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+
+        # GPT 응답 파싱
+        content = response.choices[0].message.content.strip()
+
+        # JSON 파싱 시도
+        try:
+            recommendations = json.loads(content)
+            if isinstance(recommendations, list):
+                return recommendations[:5]
+        except json.JSONDecodeError:
+            # JSON 파싱 실패 시 간단한 문자열 파싱
+            print(f"⚠️  GPT 응답 파싱 실패. 응답: {content}")
+
+        return generate_rule_based_recommendation(user_preferences)
+
+    except ImportError:
+        print("⚠️  openai 패키지가 설치되지 않았습니다. 'pip install openai' 실행 필요")
+        return generate_rule_based_recommendation(user_preferences)
+
+    except Exception as e:
+        print(f"⚠️  GPT API 호출 실패: {str(e)}")
+        return generate_rule_based_recommendation(user_preferences)
 
 
 def generate_rule_based_recommendation(preferences: Dict) -> List[str]:
