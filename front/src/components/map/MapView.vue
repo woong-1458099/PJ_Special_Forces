@@ -1,20 +1,39 @@
 <template>
   <div class="map-container">
-    <div id="map" ref="mapElement" class="map"></div>
-    <div v-if="selectedPlace" class="place-info-card">
+    <!-- API 키 누락 안내 -->
+    <div v-if="!hasApiKey" class="api-key-warning">
+      <div class="warning-icon">🗺️</div>
+      <h3>Google Maps API 키가 필요합니다</h3>
+      <p>지도를 표시하려면 API 키를 설정해주세요</p>
+      <ol class="setup-steps">
+        <li>Google Cloud Console에서 API 키 발급</li>
+        <li><code>front/.env</code> 파일 열기</li>
+        <li><code>VITE_GOOGLE_MAPS_API_KEY=발급받은키</code> 입력</li>
+        <li>개발 서버 재시작</li>
+      </ol>
+      <a href="https://console.cloud.google.com" target="_blank" class="btn-get-key">
+        API 키 발급하기 →
+      </a>
+    </div>
+
+    <!-- 지도 영역 -->
+    <div v-else id="map" ref="mapElement" class="map"></div>
+
+    <!-- 선택된 장소 정보 카드 -->
+    <div v-if="selectedPlace && hasApiKey" class="place-info-card">
+      <button @click="selectedPlace = null" class="close-btn">✕</button>
       <h3>{{ selectedPlace.name }}</h3>
-      <p>{{ selectedPlace.address }}</p>
-      <p class="category-badge">{{ getCategoryLabel(selectedPlace.category) }}</p>
-      <p v-if="selectedPlace.average_price" class="price-info">
-        💰 평균 가격: {{ formatPrice(selectedPlace.average_price) }}
-      </p>
-      <p v-if="selectedPlace.rating" class="rating-info">
-        ⭐ 평점: {{ selectedPlace.rating }}
-      </p>
-      <div class="button-group">
-        <button @click="viewDetails(selectedPlace.id)" class="btn-primary">상세 보기</button>
-        <button @click="selectedPlace = null" class="btn-secondary">닫기</button>
+      <p class="address">📍 {{ selectedPlace.address }}</p>
+      <span class="category-badge">{{ getCategoryLabel(selectedPlace.category) }}</span>
+      <div class="info-row">
+        <span v-if="selectedPlace.rating" class="rating">
+          ⭐ {{ selectedPlace.rating }}
+        </span>
+        <span v-if="selectedPlace.average_price" class="price">
+          {{ formatPrice(selectedPlace.average_price) }}
+        </span>
       </div>
+      <button @click="viewDetails(selectedPlace.id)" class="btn-primary">상세 보기</button>
     </div>
   </div>
 </template>
@@ -30,7 +49,7 @@ export default {
     },
     center: {
       type: Object,
-      default: () => ({ lat: 37.5665, lng: 126.9780 }) // 서울 기본 위치
+      default: () => ({ lat: 37.5665, lng: 126.9780 })
     }
   },
   data() {
@@ -38,11 +57,15 @@ export default {
       map: null,
       markers: [],
       selectedPlace: null,
-      google: null
+      google: null,
+      hasApiKey: false
     }
   },
   mounted() {
-    this.loadGoogleMaps()
+    this.checkApiKey()
+    if (this.hasApiKey) {
+      this.loadGoogleMaps()
+    }
   },
   watch: {
     places: {
@@ -55,23 +78,20 @@ export default {
     }
   },
   methods: {
+    checkApiKey() {
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+      this.hasApiKey = apiKey && apiKey !== 'your-google-maps-api-key-here'
+    },
+
     loadGoogleMaps() {
-      // Google Maps API 키 확인
       const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
-      if (!apiKey) {
-        console.warn('Google Maps API 키가 없습니다. .env 파일에 VITE_GOOGLE_MAPS_API_KEY를 설정하세요.')
-        this.showPlaceholder()
-        return
-      }
-
-      // 이미 로드된 경우
       if (window.google && window.google.maps) {
+        this.google = window.google
         this.initMap()
         return
       }
 
-      // Google Maps 스크립트 로드
       const script = document.createElement('script')
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
       script.async = true
@@ -82,7 +102,6 @@ export default {
       }
       script.onerror = () => {
         console.error('Google Maps 로드 실패')
-        this.showPlaceholder()
       }
       document.head.appendChild(script)
     },
@@ -90,43 +109,34 @@ export default {
     initMap() {
       if (!this.$refs.mapElement) return
 
-      // Google Map 생성
       this.map = new this.google.maps.Map(this.$refs.mapElement, {
         center: this.center,
-        zoom: 13,
+        zoom: 12,
         styles: [
-          {
-            featureType: 'poi',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }]
-          }
-        ]
+          { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+        ],
+        mapTypeControl: false,
+        fullscreenControl: false
       })
 
-      // 초기 마커 추가
       this.updateMarkers()
     },
 
     updateMarkers() {
       if (!this.map) return
 
-      // 기존 마커 제거
       this.markers.forEach(marker => marker.setMap(null))
       this.markers = []
 
-      // 새 마커 추가
       this.places.forEach(place => {
         if (place.latitude && place.longitude) {
           this.addMarker(place)
         }
       })
 
-      // 모든 마커가 보이도록 지도 영역 조정
       if (this.markers.length > 0) {
         const bounds = new this.google.maps.LatLngBounds()
-        this.markers.forEach(marker => {
-          bounds.extend(marker.getPosition())
-        })
+        this.markers.forEach(marker => bounds.extend(marker.getPosition()))
         this.map.fitBounds(bounds)
       }
     },
@@ -134,7 +144,6 @@ export default {
     addMarker(place) {
       const position = { lat: parseFloat(place.latitude), lng: parseFloat(place.longitude) }
 
-      // 카테고리별 마커 색상
       const markerColors = {
         tourist: '#FF6B6B',
         restaurant: '#4ECDC4',
@@ -144,7 +153,7 @@ export default {
       }
 
       const marker = new this.google.maps.Marker({
-        position: position,
+        position,
         map: this.map,
         title: place.name,
         icon: {
@@ -157,7 +166,6 @@ export default {
         }
       })
 
-      // 마커 클릭 이벤트
       marker.addListener('click', () => {
         this.selectedPlace = place
         this.map.panTo(position)
@@ -165,23 +173,6 @@ export default {
       })
 
       this.markers.push(marker)
-    },
-
-    showPlaceholder() {
-      // API 키가 없을 때 플레이스홀더 표시
-      if (this.$refs.mapElement) {
-        this.$refs.mapElement.innerHTML = `
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666;">
-            <div style="font-size: 48px; margin-bottom: 16px;">🗺️</div>
-            <div style="font-size: 18px; text-align: center;">
-              Google Maps API 키를 설정하세요<br/>
-              <small style="font-size: 14px; color: #999;">
-                .env 파일에 VITE_GOOGLE_MAPS_API_KEY 추가
-              </small>
-            </div>
-          </div>
-        `
-      }
     },
 
     getCategoryLabel(category) {
@@ -210,26 +201,94 @@ export default {
 .map-container {
   position: relative;
   width: 100%;
-  height: 600px;
+  height: 100%;
 }
 
 .map {
   width: 100%;
   height: 100%;
-  background: #e8e8e8;
   border-radius: 12px;
   overflow: hidden;
 }
 
+/* API 키 경고 */
+.api-key-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+}
+
+.warning-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.api-key-warning h3 {
+  font-size: 24px;
+  margin: 0 0 12px 0;
+}
+
+.api-key-warning p {
+  font-size: 16px;
+  margin-bottom: 24px;
+  opacity: 0.9;
+}
+
+.setup-steps {
+  text-align: left;
+  background: rgba(255,255,255,0.1);
+  padding: 20px 20px 20px 40px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(10px);
+}
+
+.setup-steps li {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.setup-steps code {
+  background: rgba(0,0,0,0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.btn-get-key {
+  display: inline-block;
+  padding: 12px 32px;
+  background: white;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-get-key:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* 장소 정보 카드 */
 .place-info-card {
   position: absolute;
   top: 20px;
   right: 20px;
   background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  max-width: 320px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  max-width: 300px;
   z-index: 1000;
   animation: slideIn 0.3s ease-out;
 }
@@ -237,26 +296,47 @@ export default {
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateX(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
-.place-info-card h3 {
-  margin: 0 0 12px 0;
-  font-size: 22px;
-  font-weight: 600;
-  color: #2c3e50;
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
 }
 
-.place-info-card p {
-  margin: 8px 0;
-  color: #666;
+.close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.place-info-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+  padding-right: 24px;
+}
+
+.address {
   font-size: 14px;
-  line-height: 1.5;
+  color: #666;
+  margin: 8px 0 12px 0;
+  line-height: 1.4;
 }
 
 .category-badge {
@@ -267,47 +347,38 @@ export default {
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  margin: 8px 0;
 }
 
-.price-info,
-.rating-info {
+.info-row {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.rating, .price {
+  font-size: 14px;
   font-weight: 600;
   color: #2c3e50;
 }
 
-.button-group {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.button-group button {
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
 .btn-primary {
+  width: 100%;
+  padding: 10px;
   background: #4CAF50;
   color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
   background: #45a049;
   transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: #e0e0e0;
-  color: #666;
-}
-
-.btn-secondary:hover {
-  background: #d0d0d0;
+  box-shadow: 0 2px 8px rgba(76,175,80,0.3);
 }
 </style>
