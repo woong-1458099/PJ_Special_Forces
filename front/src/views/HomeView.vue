@@ -1,8 +1,17 @@
 <template>
   <div class="home-wrapper">
+    <!-- 네비게이션 -->
+    <nav class="top-nav">
+      <div class="nav-buttons">
+        <button class="nav-btn" @click="$router.push('/concept')">컨셉</button>
+        <button class="nav-btn active" @click="$router.push('/')">추천</button>
+        <button class="nav-btn" @click="$router.push('/places')">코스</button>
+        <button class="nav-btn" @click="$router.push('/mypage')">마이</button>
+      </div>
+    </nav>
+
     <!-- 히어로 섹션 -->
     <section class="hero-section">
-      <div class="hero-overlay"></div>
       <div class="hero-content">
         <h1 class="hero-title">Snow Travel</h1>
 
@@ -18,48 +27,44 @@
           <button @click="handleSearch" class="search-btn">검색</button>
         </div>
 
-        <!-- 탭 메뉴 -->
-        <div class="tabs">
-          <button :class="['tab-btn', { active: activeTab === 'recent' }]" @click="activeTab = 'recent'">
-            📝 최근 검색
-          </button>
-          <button :class="['tab-btn', { active: activeTab === 'realtime' }]" @click="activeTab = 'realtime'">
-            🔥 실시간 검색어
-          </button>
-          <button :class="['tab-btn', { active: activeTab === 'popular' }]" @click="activeTab = 'popular'">
-            ⭐ 인기 여행지
-          </button>
+        <!-- 탭 버튼 -->
+        <div class="tab-buttons">
+          <button class="tab-btn">📝 최근 검색</button>
+          <button class="tab-btn">🔥 실시간 검색어</button>
+          <button class="tab-btn">⭐ 인기 여행지</button>
         </div>
       </div>
     </section>
 
     <!-- 카테고리 섹션 -->
-    <section class="categories-section">
-      <h3 class="section-title">여행 카테고리</h3>
-      <div class="categories-grid">
+    <section class="category-section">
+      <h2 class="section-title">여행 카테고리</h2>
+
+      <div class="category-grid">
         <div class="category-card" @click="goCategory('discount')">
-          <div class="category-icon">🎁</div>
-          <div class="category-name">무료 할인</div>
-          <p class="category-desc">할인 혜택 가득한 여행 상품</p>
+          <div class="card-icon">🎁</div>
+          <div class="card-content">
+            <h3 class="card-title">무료 할인</h3>
+            <p class="card-desc">할인 혜택 가득한 여행 상품</p>
+          </div>
         </div>
-        <div class="category-card" @click="goCategory('latest')">
-          <div class="category-icon">✨</div>
-          <div class="category-name">최신 여행</div>
-          <p class="category-desc">새로 나온 여행 상품 모음</p>
+
+        <div class="category-card" @click="goCategory('new')">
+          <div class="card-icon">✨</div>
+          <div class="card-content">
+            <h3 class="card-title">최신 여행</h3>
+            <p class="card-desc">새로 나온 여행 상품 모음</p>
+          </div>
         </div>
+
         <div class="category-card" @click="goCategory('honeymoon')">
-          <div class="category-icon">💑</div>
-          <div class="category-name">신혼 여행</div>
-          <p class="category-desc">로맨틱한 신혼여행 패키지</p>
+          <div class="card-icon">❤️</div>
+          <div class="card-content">
+            <h3 class="card-title">신혼 여행</h3>
+            <p class="card-desc">로맨틱한 신혼여행 패키지</p>
+          </div>
         </div>
       </div>
-    </section>
-
-    <!-- AI 추천 섹션 -->
-    <section class="ai-section">
-      <button @click="goAIRecommend" class="ai-recommend-btn">
-        🤖 AI 맞춤 여행 추천 받기
-      </button>
     </section>
   </div>
 </template>
@@ -70,7 +75,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const searchQuery = ref('')
-const activeTab = ref('recent')
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
@@ -87,85 +91,119 @@ const goCategory = (category) => {
     query: { category }
   })
 }
-
-const goAIRecommend = () => {
-  router.push('/concept')
-}
 </script>
 
 <style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .home-wrapper {
   width: 100%;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #f8f8f8;
+}
+
+/* 네비게이션 */
+.top-nav {
+  background: white;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 0;
+}
+
+.nav-buttons {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+}
+
+.nav-btn {
+  padding: 10px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  background: white;
+  border: 2px solid #7c6bb5;
+  border-radius: 24px;
+  color: #7c6bb5;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+  background: #7c6bb5;
+  color: white;
 }
 
 /* 히어로 섹션 */
 .hero-section {
-  position: relative;
-  height: 450px;
-  background-image: url('https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?w=1920');
+  background-image: url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1920');
   background-size: cover;
   background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 80px 20px;
+  position: relative;
 }
 
-.hero-overlay {
+.hero-section::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(120, 100, 180, 0.7);
+  background: rgba(160, 130, 200, 0.6);
 }
 
 .hero-content {
   position: relative;
-  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
   text-align: center;
-  width: 100%;
-  max-width: 700px;
-  padding: 20px;
 }
 
 .hero-title {
-  font-size: 48px;
+  font-size: 56px;
   font-weight: 700;
   color: white;
-  margin-bottom: 32px;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* 검색 영역 */
 .search-container {
   display: flex;
-  max-width: 600px;
-  margin: 0 auto 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 700px;
+  margin: 0 auto 30px;
+  background: white;
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .search-input {
   flex: 1;
-  padding: 16px 20px;
-  font-size: 15px;
+  padding: 18px 24px;
+  font-size: 16px;
   border: none;
   outline: none;
+  color: #333;
 }
 
 .search-input::placeholder {
-  color: #999;
+  color: #aaa;
 }
 
 .search-btn {
-  padding: 16px 32px;
-  font-size: 15px;
+  padding: 18px 40px;
+  font-size: 16px;
   font-weight: 600;
-  color: white;
   background: #5cb85c;
+  color: white;
   border: none;
   cursor: pointer;
   transition: background 0.3s;
@@ -175,113 +213,97 @@ const goAIRecommend = () => {
   background: #4cae4c;
 }
 
-/* 탭 메뉴 */
-.tabs {
+/* 탭 버튼 */
+.tab-buttons {
   display: flex;
   gap: 12px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .tab-btn {
-  padding: 10px 20px;
-  font-size: 14px;
+  padding: 12px 24px;
+  font-size: 15px;
   font-weight: 500;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
   color: white;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
 }
 
-.tab-btn:hover,
-.tab-btn.active {
+.tab-btn:hover {
   background: rgba(255, 255, 255, 0.35);
   border-color: white;
 }
 
 /* 카테고리 섹션 */
-.categories-section {
-  max-width: 1000px;
-  margin: 60px auto;
-  padding: 0 20px;
+.category-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 20px;
 }
 
 .section-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   color: #333;
-  margin-bottom: 32px;
   text-align: center;
+  margin-bottom: 40px;
 }
 
-.categories-grid {
+.category-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 30px;
 }
 
 @media (max-width: 768px) {
-  .categories-grid {
+  .category-grid {
     grid-template-columns: 1fr;
   }
 }
 
 .category-card {
   background: white;
-  padding: 32px 24px;
-  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .category-card:hover {
+  border-color: #7c6bb5;
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(124, 107, 181, 0.2);
 }
 
-.category-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+.card-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
 }
 
-.category-name {
-  font-size: 20px;
-  font-weight: 600;
+.card-content {
+  width: 100%;
+}
+
+.card-title {
+  font-size: 22px;
+  font-weight: 700;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-.category-desc {
-  font-size: 14px;
+.card-desc {
+  font-size: 15px;
   color: #666;
   line-height: 1.5;
-}
-
-/* AI 추천 섹션 */
-.ai-section {
-  text-align: center;
-  padding: 40px 20px 80px;
-}
-
-.ai-recommend-btn {
-  padding: 18px 48px;
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s;
-}
-
-.ai-recommend-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 </style>
